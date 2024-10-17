@@ -2,50 +2,56 @@ package main
 
 import(
 	"testing"
+	"fmt"
 )
+
+func assertTaxEqual(house_price float64, expected_tax float64) (bool, string){
+	lbtt := MakeApr2021LBTT()
+	tax, _:= lbtt.Calculate(house_price)
+	if tax != expected_tax{
+		return false, fmt.Sprintf("Incorrect tax for houseprice %f. Got %f but expcted %f", house_price, tax, expected_tax);
+	}
+	return true, ""
+}
 
 func Test_Zero_Band(t *testing.T){
 
-	lbtt := MakeApr2021LBTT()
-	tax, _:= lbtt.Calculate(144999)
-	if (tax != 0){
-		t.Errorf("Non zero tax for given price outside of minimum band.")
+	valid, result := assertTaxEqual(144999.0, 0.0)
+	if !valid{
+		t.Error(result)
 	}
-
 }
 
 func Test_First_Tax_Band(t *testing.T){
-	lbtt := MakeApr2021LBTT()
-	tax, _:= lbtt.Calculate(150000)
-	if (tax != 100){
-		t.Errorf("Incorrect tax for house price %f. Got %f but expected %f", 150000.0, tax, 100.0);
+	valid, result := assertTaxEqual(150000.0, 100.0)
+	if !valid{
+		t.Error(result)
 	}
 }
 
 func Test_First_And_Second_Bands(t *testing.T){
-	lbtt := MakeApr2021LBTT()
-	tax, _ := lbtt.Calculate(300000)
-	if (tax != 4600){
-		t.Errorf("Incorrect tax for house price %f. Got %f but expected %f", 300000.0, tax, 4600.0);
+	valid, result := assertTaxEqual(300000.0, 4600.0)
+	if !valid{
+		t.Error(result)
 	}
-
 }
 
 func Test_Max_Band(t *testing.T){
-	lbtt := MakeApr2021LBTT()
-	tax, _ := lbtt.Calculate(760000)
-	if (tax != 49550){
-		t.Errorf("Incorrect tax for house price %f. Got %f but expected %f", 760000.0, tax, 49550.0);
+	valid, result := assertTaxEqual(760000.0, 49550.0)
+	if !valid{
+		t.Error(result)
 	}
 }
 
 func Test_Exceed_Max_Band_And_Consideration(t *testing.T){
-	lbtt := MakeApr2021LBTT()
-	tax, _:= lbtt.Calculate(830000)
-	if (tax != 57950){
-		t.Errorf("Incorrect tax for house price %f. Got %f but expected %f", 830000.0, tax, 57950.0);
+	valid, result := assertTaxEqual(830000.0, 57950.0)
+	if !valid{
+		t.Error(result)
 	}
-
+	valid, result = assertTaxEqual(875000.0, 63350.0)
+	if !valid{
+		t.Error(result)
+	}
 }
 
 func Test_Build_Invalid_Ranges(t *testing.T){
