@@ -1,7 +1,7 @@
 package main 
 
 import (
-	"fmt"
+	"errors"
 )
 
 func NewLBTT() *LBTT {
@@ -10,6 +10,7 @@ func NewLBTT() *LBTT {
 
 func (lbtt *LBTT) addBand(band Band) *LBTT {
 	lbtt.bands = append(lbtt.bands, band)
+
 	return lbtt
 }
 
@@ -24,26 +25,27 @@ func (lbtt *LBTT) WithFinalBand(start_range_inclusive, consideration, rate float
 func (lbtt *LBTT) bandsInOrder() error {
 	bands := lbtt.bands
 
-	previous_max := 0.0
-	for i, band := range bands {
-
-		// New min should be 1 greater than previous max
-		if i == 0 {
-			// do not need to validate in this case
-			previous_max = band.end_range_inclusive
-			continue
+	var previousBand Band 
+    for i, calculatableBand := range bands {
+		band, ok := calculatableBand.(Band)
+		if !ok{
+			return errors.New("One of your provided bands could not be type asserted to the concrete type Band.")
 		}
+		
+        if i == 0 {
+            // Do not need to validate the first band, just assign it as previousBand.
+			previousBand = band
+        } else {
+            // Validate the current band using the previous band.
+            err := band.CheckValidBand(previousBand)
+            if err != nil {
+                return err
+            }
 
-		if band.start_range_inclusive+1 != previous_max {
-			return fmt.Errorf("Found non contiguous bands. Band with starting range %f does not coincide with previous band with ending range %f", band.end_range_inclusive, previous_max)
-		}
-
-		if band.consideration != band.end_range_inclusive - previous_max || band.end_range_inclusive == 0{
-			return fmt.Errorf("Found invalid conideration given. Considerations should not exceed the width of the band itself. Given consideration %f should not exceed %f", band.consideration, band.end_range_inclusive - previous_max)
-		}
-
-		previous_max = band.end_range_inclusive
-	}
+            // Update previousBand to the current band for the next iteration.
+            previousBand = band
+        }
+    }
 
 	return nil
 
@@ -53,8 +55,9 @@ func (lbtt *LBTT) Build(err *error) *LBTT{
 	// Function is responsible for validating the given bands and ensuring that there is a final "boundless band"
 
 	// assert bands are in order
-	*err = lbtt.bandsInOrder()
-	// do we need to check for final band?
+	if err != nil{
+		*err = lbtt.bandsInOrder()
+	}
 
 	if err != nil{
 		lbtt.isBuilt = true
