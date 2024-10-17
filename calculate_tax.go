@@ -13,7 +13,6 @@ type Band struct {
 	start_range_inclusive, end_range_inclusive, consideration, rate float64
 }
 
-
 type CalculatableBand interface{
 	CalculateTaxInBand(house_price float64) float64
 	CheckValidBand(previousBand CalculatableBand) error
@@ -28,6 +27,10 @@ type LBTTWithAdditionalDwelling struct {
 	additionalDwelling float64 
 }
 
+type LBTTWithFirsTimeBuyersRelief struct{
+	lbttCalculator LBTT
+	ftbNilRateBand float64
+}
 func (currentBand Band) CheckValidBand(previousBand CalculatableBand) error{
 		concretePreviousBand, ok := previousBand.(Band)
 		if ok{
@@ -86,4 +89,12 @@ func (lbttWithAD *LBTTWithAdditionalDwelling) Calculate(house_price float64) (fl
 		return 0.0, err
 	}
 	return base_amount + ADSupplement, nil
+}
+
+func (lbttWithFTB LBTTWithFirsTimeBuyersRelief) Calculate(house_price float64) (float64, error){
+	if house_price > lbttWithFTB.ftbNilRateBand{
+		return lbttWithFTB.lbttCalculator.Calculate(house_price)
+	}else{
+		return 0.0, nil
+	}
 }

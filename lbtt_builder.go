@@ -9,19 +9,29 @@ func NewLBTT() *LBTT {
 }
 
 func (lbtt *LBTT) addBand(band Band) *LBTT {
-	lbtt.bands = append(lbtt.bands, band)
+	if !lbtt.isBuilt{
+		lbtt.bands = append(lbtt.bands, band)
+	}
+	return lbtt
+
+}
+
+func (lbtt *LBTT) WithBand(start_range_inclusive, end_range_inclusive, consideration, rate float64) *LBTT {
+	if !lbtt.isBuilt{
+		lbtt.addBand(Band{start_range_inclusive: start_range_inclusive, end_range_inclusive: end_range_inclusive, consideration: consideration, rate: rate})
+	}
 
 	return lbtt
 }
 
-func (lbtt *LBTT) WithBand(start_range_inclusive, end_range_inclusive, consideration, rate float64) *LBTT {
-	return lbtt.addBand(Band{start_range_inclusive: start_range_inclusive, end_range_inclusive: end_range_inclusive, consideration: consideration, rate: rate})
-}
-
 func (lbtt *LBTT) WithFinalBand(start_range_inclusive, consideration, rate float64) *LBTT {
-	return lbtt.addBand(Band{start_range_inclusive: start_range_inclusive, end_range_inclusive: (start_range_inclusive + consideration), consideration: consideration, rate: rate})
-}
+	if !lbtt.isBuilt{
+		lbtt.addBand(Band{start_range_inclusive: start_range_inclusive, end_range_inclusive: (start_range_inclusive + consideration), consideration: consideration, rate: rate})
+	}
 
+	return lbtt
+
+}
 func (lbtt *LBTT) bandsInOrder() error {
 	bands := lbtt.bands
 
