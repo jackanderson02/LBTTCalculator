@@ -16,7 +16,8 @@ func assertCalculationCorrect(calculator HousingTaxCalculator, house_price float
 }
 
 func assertApril2021Tax(house_price float64, expected_tax float64) (bool, string) {
-	lbtt := MakeApr2021LBTT()
+	fact := Apr2021Factory{}
+	lbtt := fact.createCalculator()
 	return assertCalculationCorrect(lbtt, house_price, expected_tax)
 }
 
@@ -61,8 +62,10 @@ func Test_Exceed_Max_Band_And_Consideration(t *testing.T) {
 }
 
 func Test_Additional_Dwelling_Supplement(t *testing.T) {
+	fact := Apr2021Factory{}
+	lbtt := fact.createCalculator()
 	calc := lbttWithAdditionalDwelling{
-		lbttCalculator:     *MakeApr2021LBTT(),
+		lbttCalculator:    lbtt, 
 		additionalDwelling: 200000,
 	}
 
@@ -90,8 +93,10 @@ func Test_Valid_Aggregration_Of_Calculators(t *testing.T){
 
 }
 func Test_First_Time_Buyers(t *testing.T) {
+	fact := Apr2021Factory{}
+	lbtt := fact.createCalculator()
 	calc := lbttWithFirstTimeBuyersRelief{
-		lbttCalculator: *MakeApr2021LBTT(),
+		lbttCalculator: lbtt,
 		ftbNilRateBand: 175000,
 	}
 
